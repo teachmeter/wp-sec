@@ -15,12 +15,12 @@ use RuntimeException;
  * Wordfence Intelligence v3 production feed: WordPress core/plugin/theme
  * vulnerabilities with CVSS scores. Free, but needs an API key generated
  * from a free Wordfence account (wordfence.com/threat-intel/) and is rate
- * limited to one download every 30 minutes, so vuln:sync must not run more
- * often than that.
+ * limited to one download every 30 minutes, which the syncer enforces via
+ * RateLimitedSource while the other sources sync more often.
  *
  * @see https://www.wordfence.com/help/wordfence-intelligence/v2-accessing-and-consuming-the-vulnerability-data-feed/
  */
-class WordfenceSource implements VulnerabilitySource
+class WordfenceSource implements RateLimitedSource
 {
     private const FEED_URL = 'https://www.wordfence.com/api/intelligence/v3/vulnerabilities/production';
 
@@ -33,6 +33,11 @@ class WordfenceSource implements VulnerabilitySource
     public function name(): VulnerabilitySourceName
     {
         return VulnerabilitySourceName::Wordfence;
+    }
+
+    public function minimumIntervalMinutes(): int
+    {
+        return 30;
     }
 
     public function fetch(): array

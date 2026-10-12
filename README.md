@@ -48,7 +48,7 @@ Pull in vulnerability data manually with:
 php artisan vuln:sync
 ```
 
-In production this is scheduled automatically (see `routes/console.php`) — every 30 minutes, matching Wordfence's rate limit.
+In production this is scheduled automatically (see `routes/console.php`) — every 15 minutes. Wordfence is rate limited to one download per 30 minutes, so the syncer skips it on the runs in between.
 
 ## Testing
 
@@ -59,12 +59,13 @@ npm run typecheck
 
 ## How it works
 
-- `App\Vulnerabilities\Sources\*` — one class per feed (Wordfence Intelligence, WPVulnerability.com), each implementing `VulnerabilitySource::fetch()` and returning normalized records.
+- `App\Vulnerabilities\Sources\*` — one class per feed (NVD, Wordfence Intelligence, WPVulnerability.com), each implementing `VulnerabilitySource::fetch()` and returning normalized records. NVD needs no key and pulls every WordPress plugin/theme CVE from the last 30 days, so the dashboard works as a broad news feed even with no Wordfence key or tracked slugs. Sources implementing `RateLimitedSource` (Wordfence) are skipped until their minimum interval has passed.
 - `App\Vulnerabilities\CisaKevEnricher` — cross-references stored CVEs against CISA's Known Exploited Vulnerabilities catalog and flags matches as high-priority regardless of CVSS score.
 - `App\Vulnerabilities\VulnerabilitySyncer` — orchestrates all sources, dedupes by CVE id (or source id, or a title hash as last resort), and logs each run to `source_syncs` so a dead feed is visible instead of silently missing data.
 - `vuln:sync` artisan command — runs the syncer; wired into the scheduler in `routes/console.php`.
-- `GET /api/vulnerabilities` — filterable list (`severity`, `source`, `component_type`, `status`, `q`, `affects_our_stack`, `high_risk_only`, `from`/`to`, `per_page`).
+- `GET /api/vulnerabilities` — filterable list (`severity`, `source`, `component_type`, `status`, `q`, `affects_our_stack`, `high_risk_only`, `watched`, `from`/`to`, `per_page`).
 - `GET /api/vulnerabilities/ticker` — latest high-risk items for the dashboard ticker.
+- `PUT` / `DELETE /api/vulnerabilities/{id}/watch` — add to / remove from the shared watchlist.
 - `PATCH /api/vulnerabilities/{id}` — update an item's triage `status` (new/reviewing/patched/not_applicable/ignored).
 
 ## Deploying
@@ -74,6 +75,6 @@ Built to deploy via [Laravel Forge](https://forge.laravel.com/) onto a DigitalOc
 1. Create the site in Forge, point it at this repo, deploy as usual (Forge handles nginx, PHP, SSL, and the scheduler cron automatically).
 2. Set `WORDFENCE_API_KEY` and `TRACKED_PLUGIN_SLUGS` as environment variables on the Forge site (or in its `.env`).
 3. Run the deploy script's `php artisan migrate --force` (Forge's default deploy script already does this).
-4. Confirm the scheduler is running: check the `source_syncs` table after ~30 minutes for fresh rows.
+4. Confirm the scheduler is running: check the `source_syncs` table after ~15 minutes for fresh rows.
 
 SQLite is the default DB — it's a single file (`database/database.sqlite`), so back it up like any other file (Forge's backup tooling, or a simple cron `cp`).

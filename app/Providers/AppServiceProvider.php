@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Vulnerabilities\CisaKevEnricher;
+use App\Vulnerabilities\Sources\NvdSource;
 use App\Vulnerabilities\Sources\VulnerabilitySource;
 use App\Vulnerabilities\Sources\WordfenceSource;
 use App\Vulnerabilities\Sources\WpVulnerabilitySource;
@@ -16,7 +17,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->tag([WordfenceSource::class, WpVulnerabilitySource::class], VulnerabilitySource::class);
+        // NVD runs first so the richer Wordfence/WPVulnerability records overwrite its shared CVEs.
+        $this->app->tag([NvdSource::class, WordfenceSource::class, WpVulnerabilitySource::class], VulnerabilitySource::class);
 
         $this->app->bind(VulnerabilitySyncer::class, function ($app): VulnerabilitySyncer {
             return new VulnerabilitySyncer(

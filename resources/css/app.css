@@ -8,6 +8,52 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+@layer components {
+    .stat-pill {
+        @apply inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-400 transition hover:border-slate-600 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50;
+    }
+
+    .filter-label {
+        @apply mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-500;
+    }
+
+    .chip {
+        @apply inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-sm text-slate-400 transition hover:border-slate-500 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50;
+    }
+
+    .chip[aria-pressed='true'] {
+        @apply border-sky-500/60 bg-sky-500/15 text-sky-200;
+    }
+
+    .segment {
+        @apply rounded-md px-3 py-1 text-sm text-slate-400 transition hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50;
+    }
+
+    .segment[aria-pressed='true'] {
+        @apply bg-slate-700 text-white shadow;
+    }
+
+    .toggle {
+        @apply inline-flex cursor-pointer select-none items-center gap-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300 transition hover:border-slate-500;
+    }
+
+    .toggle-track {
+        @apply relative h-5 w-9 rounded-full bg-slate-700 transition peer-checked:bg-sky-500 peer-focus-visible:ring-2 peer-focus-visible:ring-sky-500/50;
+    }
+
+    .toggle-track::after {
+        @apply absolute left-0.5 top-0.5 size-4 rounded-full bg-white transition content-[''];
+    }
+
+    .peer:checked ~ .toggle-track::after {
+        @apply translate-x-4;
+    }
+
+    .pager-btn {
+        @apply rounded-lg border border-slate-700 px-3 py-1.5 transition hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30;
+    }
+}
+
 @keyframes marquee {
     from {
         transform: translateX(0);
@@ -18,9 +64,15 @@
 }
 
 .animate-marquee {
-    animation: marquee 40s linear infinite;
+    animation: marquee 60s linear infinite;
 }
 
 .animate-marquee:hover {
     animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+        animation: none;
+    }
 }
